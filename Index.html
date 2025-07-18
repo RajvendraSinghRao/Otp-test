@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Phone OTP Login</title>
+  <meta charset="UTF-8">
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyALunnaeOoBHFVGMbUNHvOfsvVxxFp4cDQ",
+      authDomain: "email-otp-1.firebaseapp.com",
+      projectId: "email-otp-1",
+      storageBucket: "email-otp-1.firebasestorage.app",
+      messagingSenderId: "701816919839",
+      appId: "1:701816919839:web:c24cfdd53ab261f8e9c22a",
+      measurementId: "G-ECNHQ8CDGC"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Setup Recaptcha when page loads
+    window.onload = () => {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'normal',
+        callback: (response) => {
+          console.log("reCAPTCHA solved");
+        },
+        'expired-callback': () => {
+          alert("reCAPTCHA expired, please verify again");
+        }
+      });
+      recaptchaVerifier.render();
+    };
+
+    // Send OTP
+    window.sendOTP = () => {
+      const phoneNumber = document.getElementById("phone").value;
+      const appVerifier = window.recaptchaVerifier;
+
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("OTP sent successfully!");
+        }).catch((error) => {
+          alert("Error: " + error.message);
+        });
+    };
+
+    // Verify OTP
+    window.verifyOTP = () => {
+      const code = document.getElementById("otp").value;
+      window.confirmationResult.confirm(code).then((result) => {
+        alert("Phone number verified successfully!");
+      }).catch((error) => {
+        alert("Invalid OTP or expired. Try again.");
+      });
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      width: 250px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    #recaptcha-container {
+      margin: 15px auto;
+      width: fit-content;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Login with OTP</h2>
+  <input type="text" id="phone" placeholder="+91XXXXXXXXXX"><br>
+  <div id="recaptcha-container"></div>
+  <button onclick="sendOTP()">Send OTP</button><br><br>
+
+  <input type="text" id="otp" placeholder="Enter OTP"><br>
+  <button onclick="verifyOTP()">Verify OTP</button>
+
+</body>
+</html>
